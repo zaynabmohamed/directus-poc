@@ -1,0 +1,47 @@
+services:
+  database:
+    image: postgres:15
+    container_name: directus-db
+    restart: always
+    environment:
+      POSTGRES_USER: directus
+      POSTGRES_PASSWORD: directus
+      POSTGRES_DB: directus
+    volumes:
+      - ./database:/var/lib/postgresql/data
+
+  cache:
+    image: redis:7
+    container_name: directus-redis
+    restart: always
+
+  directus:
+    image: directus/directus:latest
+    container_name: directus
+    ports:
+      - "8055:8055"
+    depends_on:
+      - database
+      - cache
+    restart: always
+    environment:
+      KEY: "my-secret-key"
+      SECRET: "my-secret"
+
+      DB_CLIENT: "pg"
+      DB_HOST: "database"
+      DB_PORT: "5432"
+      DB_DATABASE: "directus"
+      DB_USER: "directus"
+      DB_PASSWORD: "directus"
+
+      CACHE_ENABLED: "true"
+      CACHE_STORE: "redis"
+      REDIS: "redis://cache:6379"
+
+      ADMIN_EMAIL: "admin@example.com"
+      ADMIN_PASSWORD: "admin123"
+
+    volumes:
+      - ./uploads:/directus/uploads
+      - ./extensions:/directus/extensions
